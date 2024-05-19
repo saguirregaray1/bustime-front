@@ -1,35 +1,54 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+"use client";
+
+import { APIProvider, Map, InfoWindow } from "@vis.gl/react-google-maps";
+import { useState } from "react";
+import Markers from "./Markers";
+import trees from "./markersData";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const position = { lat: 43.64, lng: -79.41 };
+  const [open, setOpen] = useState({
+    position: position,
+    isOpen: false,
+  });
+
+  function handleMarkerClick(position: google.maps.LatLngLiteral) {
+    setOpen({ position: position, isOpen: true });
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <APIProvider apiKey={import.meta.env.VITE_GOOGLE_API_KEY || ""}>
+      <div style={{ height: "100vh", width: "100%" }}>
+        <Map
+          defaultZoom={17}
+          defaultCenter={position}
+          mapId={import.meta.env.VITE_MAP_ID}
+        >
+          <Markers points={trees} handleClick={handleMarkerClick} />
+        </Map>
+
+        {open.isOpen && (
+          <InfoWindow
+            position={open.position}
+            onCloseClick={() =>
+              setOpen({
+                position: position,
+                isOpen: false,
+              })
+            }
+            onClose={() =>
+              setOpen({
+                position: position,
+                isOpen: false,
+              })
+            }
+          >
+            <p>Datos de la parada</p>
+          </InfoWindow>
+        )}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </APIProvider>
+  );
 }
 
-export default App
+export default App;
