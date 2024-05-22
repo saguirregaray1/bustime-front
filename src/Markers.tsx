@@ -4,9 +4,8 @@ import type { Marker } from "@googlemaps/markerclusterer";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useState, useRef, useEffect } from "react";
 
-type Point = google.maps.LatLngLiteral & { key: string };
 type Props = {
-  points: Point[];
+  points: { id: number; lat: number; lng: number }[];
   handleClick: (position: google.maps.LatLngLiteral) => void;
 };
 
@@ -47,10 +46,10 @@ const Markers = ({ points, handleClick }: Props) => {
     <>
       {points.map((point) => (
         <AdvancedMarker
-          position={point}
-          key={point.key}
-          onClick={() => handleClick(point)}
-          ref={(marker) => setMarkerRef(marker, point.key)}
+          position={{ lat: point.lat, lng: point.lng }}
+          key={point.id}
+          onClick={() => handleClick({ lat: point.lat, lng: point.lng })}
+          ref={(marker) => setMarkerRef(marker, point.id.toString())}
         >
           <img src={busLogo} alt="React Logo" style={{ width: 40 }} />
         </AdvancedMarker>

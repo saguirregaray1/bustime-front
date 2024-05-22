@@ -1,16 +1,41 @@
 "use client";
 
 import { APIProvider, Map, InfoWindow } from "@vis.gl/react-google-maps";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Markers from "./Markers";
-import trees from "./markersData";
+import { useQuery } from "@tanstack/react-query";
+
+async function fetchStops() {
+  const response = await fetch("http://localhost:8000/api/stop/");
+  if (!response.ok) {
+    throw new Error("Could not fetch stops");
+  }
+  return response.json();
+}
 
 function App() {
-  const position = { lat: 43.64, lng: -79.41 };
+  const [position, setPosition] = useState({
+    lat: -34.87859994296411,
+    lng: -56.08020979067669,
+  });
   const [open, setOpen] = useState({
     position: position,
     isOpen: false,
   });
+
+  const { data, isPending, isError, error } = useQuery({
+    queryKey: ["stops"],
+    queryFn: fetchStops,
+  });
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      setPosition({
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      });
+    });
+  }, []);
 
   function handleMarkerClick(position: google.maps.LatLngLiteral) {
     setOpen({ position: position, isOpen: true });
@@ -24,7 +49,9 @@ function App() {
           defaultCenter={position}
           mapId={import.meta.env.VITE_MAP_ID}
         >
-          <Markers points={trees} handleClick={handleMarkerClick} />
+          {isPending && <p>Loading...</p>}
+          {isError && <p>Error: {error.message}</p>}
+          {data && <Markers points={data} handleClick={handleMarkerClick} />}
         </Map>
 
         {open.isOpen && (
