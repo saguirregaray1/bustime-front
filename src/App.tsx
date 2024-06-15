@@ -1,9 +1,9 @@
 "use client";
 
-import { APIProvider, Map, InfoWindow } from "@vis.gl/react-google-maps";
+import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { useEffect, useState } from "react";
-import Markers from "./Markers";
 import { useQuery } from "@tanstack/react-query";
+import Points from "./Points";
 
 async function fetchStops() {
   const response = await fetch("http://localhost:8000/api/stop/");
@@ -17,10 +17,6 @@ function App() {
   const [position, setPosition] = useState({
     lat: -34.87859994296411,
     lng: -56.08020979067669,
-  });
-  const [open, setOpen] = useState({
-    position: position,
-    isOpen: false,
   });
 
   const { data, isPending, isError, error } = useQuery({
@@ -37,10 +33,6 @@ function App() {
     });
   }, []);
 
-  function handleMarkerClick(position: google.maps.LatLngLiteral) {
-    setOpen({ position: position, isOpen: true });
-  }
-
   return (
     <APIProvider apiKey={import.meta.env.VITE_GOOGLE_API_KEY || ""}>
       <div style={{ height: "100vh", width: "100%" }}>
@@ -51,28 +43,8 @@ function App() {
         >
           {isPending && <p>Loading...</p>}
           {isError && <p>Error: {error.message}</p>}
-          {data && <Markers points={data} handleClick={handleMarkerClick} />}
+          {data && <Points points={data} />}
         </Map>
-
-        {open.isOpen && (
-          <InfoWindow
-            position={open.position}
-            onCloseClick={() =>
-              setOpen({
-                position: position,
-                isOpen: false,
-              })
-            }
-            onClose={() =>
-              setOpen({
-                position: position,
-                isOpen: false,
-              })
-            }
-          >
-            <p>Datos de la parada</p>
-          </InfoWindow>
-        )}
       </div>
     </APIProvider>
   );

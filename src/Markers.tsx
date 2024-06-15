@@ -1,4 +1,4 @@
-import { AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
+import { AdvancedMarker, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import busLogo from "./assets/bus.svg";
 import type { Marker } from "@googlemaps/markerclusterer";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
@@ -6,13 +6,20 @@ import { useState, useRef, useEffect } from "react";
 
 type Props = {
   points: { id: number; lat: number; lng: number }[];
-  handleClick: (position: google.maps.LatLngLiteral) => void;
 };
 
-const Markers = ({ points, handleClick }: Props) => {
+const Markers = ({ points }: Props) => {
   const map = useMap();
   const [markers, setMarkers] = useState<{ [key: string]: Marker }>({});
   const clusterer = useRef<MarkerClusterer | null>(null);
+
+  const [open, setOpen] = useState<{
+    position: google.maps.LatLngLiteral | undefined;
+    isOpen: boolean;
+  }>({
+    position: undefined,
+    isOpen: false,
+  });
 
   useEffect(() => {
     if (!map) return;
@@ -41,6 +48,20 @@ const Markers = ({ points, handleClick }: Props) => {
       }
     });
   };
+  console.log("a");
+  function handleClick(event: google.maps.MapMouseEvent) {
+    setOpen({
+      position: event.latLng?.toJSON(),
+      isOpen: true,
+    });
+  }
+
+  function handleClose() {
+    setOpen({
+      position: undefined,
+      isOpen: false,
+    });
+  }
 
   return (
     <>
@@ -48,12 +69,18 @@ const Markers = ({ points, handleClick }: Props) => {
         <AdvancedMarker
           position={{ lat: point.lat, lng: point.lng }}
           key={point.id}
-          onClick={() => handleClick({ lat: point.lat, lng: point.lng })}
+          onClick={handleClick}
           ref={(marker) => setMarkerRef(marker, point.id.toString())}
         >
           <img src={busLogo} alt="React Logo" style={{ width: 40 }} />
         </AdvancedMarker>
       ))}
+      {open.isOpen && (
+        <InfoWindow position={open.position} onClose={handleClose}>
+          <h2>InfoWindow content!</h2>
+          <p>Some arbitrary html to be rendered into the InfoWindow.</p>
+        </InfoWindow>
+      )}
     </>
   );
 };
