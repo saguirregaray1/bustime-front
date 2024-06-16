@@ -8,6 +8,10 @@ RUN npm install
 
 COPY . .
 
+RUN npm install esbuild@latest
+
 RUN npm run build
 
-EXPOSE 3000:3000
+EXPOSE 4173
+
+CMD [ "npm", "run", "preview" ]
