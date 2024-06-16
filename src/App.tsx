@@ -6,7 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import Points from "./Points";
 
 async function fetchStops() {
-  const response = await fetch(import.meta.env.SERVER_URL + "/api/stop/");
+  const url = import.meta.env.VITE_SERVER_URL + "/api/stop/";
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error("Could not fetch stops");
   }

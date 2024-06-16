@@ -3,8 +3,9 @@ import {
   AdvancedMarker,
   InfoWindow,
 } from "@vis.gl/react-google-maps";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useActiveMarker } from "./context/marker-context";
+import useWebSocket from "react-use-websocket";
 type Props = {
   position: google.maps.LatLngLiteral;
   children?: React.ReactNode;
@@ -15,11 +16,28 @@ const MarkerWithInfoWindow = ({ position, children, id }: Props) => {
   // `markerRef` and `marker` are needed to establish the connection between
   // the marker and infowindow (if you're using the Marker component, you
   // can use the `useMarkerRef` hook instead).
+
+  const [data, setData] = useState(null);
+
   const [markerRef, marker] = useAdvancedMarkerRef();
 
   const { activeMarkerId, setActiveMarkerId } = useActiveMarker();
 
   const infoWindowShown = activeMarkerId === id;
+
+  let url = "";
+
+  if (infoWindowShown) {
+    url = import.meta.env.VITE_WS_URL + "/ws/socket-server/";
+  }
+
+  const { sendJsonMessage } = useWebSocket(url, {
+    onMessage: (event) => {
+      sendJsonMessage({ stop_id: id });
+      console.log(event);
+    },
+    retryOnError: false,
+  });
 
   // clicking the marker will toggle the infowindow
   const handleMarkerClick = useCallback(() => {
@@ -32,6 +50,7 @@ const MarkerWithInfoWindow = ({ position, children, id }: Props) => {
       setActiveMarkerId(null);
     }
   }, [id, activeMarkerId, setActiveMarkerId]);
+
   return (
     <>
       <AdvancedMarker
@@ -44,8 +63,8 @@ const MarkerWithInfoWindow = ({ position, children, id }: Props) => {
 
       {infoWindowShown && (
         <InfoWindow anchor={marker} onClose={handleClose}>
-          <h2>InfoWindow content!</h2>
-          <p>Some arbitrary html to be rendered into the InfoWindow.</p>
+          <h2>Parada {id}</h2>
+          {data}
         </InfoWindow>
       )}
     </>
